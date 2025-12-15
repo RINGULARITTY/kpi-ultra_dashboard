@@ -96,8 +96,8 @@ def get_player(request, conn, c):
             CASE 
                 WHEN (m.player1_id = ? AND m.score1 > m.score2) OR 
                      (m.player2_id = ? AND m.score2 > m.score1) 
-                THEN 'Victoire' 
-                ELSE 'Défaite' 
+                THEN 'Win' 
+                ELSE 'Loose' 
             END as result,
             m.played_at,
             CASE 
@@ -134,7 +134,7 @@ def get_player(request, conn, c):
     
     # Statistiques générales
     total_matches = len(matches_history)
-    wins = sum(1 for m in matches_history if m['result'] == 'Victoire')
+    wins = sum(1 for m in matches_history if m['result'] == 'Win')
     losses = total_matches - wins
     win_rate = round((wins / total_matches * 100) if total_matches > 0 else 0, 1)
     
@@ -183,11 +183,25 @@ def get_player(request, conn, c):
     player_conf_data_std = prepare_player_confidence_data(c, player_id, player[2])
     all_players = get_all_players_summary(c)
     
+    c.execute("SELECT * FROM matches")
+    all_matches = [
+        {
+            'id': r[0],
+            'player1_id': r[1],
+            'player2_id': r[2],
+            'score_1': r[3],
+            'score_2': r[4],
+            'played_at': r[5]
+        }
+        for r in c.fetchall()
+    ]
+
     if player_conf_data_std:
         confidence_standard = calculate_advanced_confidence(
+            player_id,
             player_conf_data_std, 
             all_players,
-            None  # all_matches pas nécessaire pour l'instant
+            all_matches  # all_matches pas nécessaire pour l'instant
         )
     else:
         # Joueur sans matchs
@@ -205,9 +219,10 @@ def get_player(request, conn, c):
     if player_conf_data_score:
         player_conf_data_score['elo_current'] = player[3]
         confidence_with_score = calculate_advanced_confidence(
+            player_id,
             player_conf_data_score,
             all_players,
-            None
+            all_matches
         )
     else:
         confidence_with_score = {

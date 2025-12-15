@@ -192,7 +192,6 @@ HTML_TEMPLATE = """
             padding: 30px;
             border-radius: 15px;
             width: 90%;
-            max-width: 900px;
             max-height: 85vh;
             overflow-y: auto;
             animation: slideIn 0.3s;
@@ -651,401 +650,413 @@ HTML_TEMPLATE = """
             background: #764ba2;
         }
         
-        .prediction-section {
-            margin: 25px 0;
-        }
-
+        .prediction-section { margin: 25px 0; }
         .prediction-section h3 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.4em;
-            text-align: center;
+        color: #667eea;
+        margin-bottom: 20px;
+        font-size: 1.4em;
+        text-align: center;
         }
 
         .prediction-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
         }
 
-        /* Carte de prédiction individuelle */
         .prediction-card {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            position: relative;
-            overflow: hidden;
+        background: #fff;
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+        position: relative;
+        overflow: hidden;
         }
 
-        .prediction-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        .prediction-card:before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
         }
 
         .prediction-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
         }
 
         .prediction-header h4 {
-            color: #667eea;
-            margin: 0;
-            font-size: 1.2em;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        color: #667eea;
+        margin: 0;
+        font-size: 1.2em;
+        display: flex;
+        align-items: center;
+        gap: 8px;
         }
 
         .confidence-badge {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.9em;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #fff;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-weight: 700;
+        font-size: 0.9em;
         }
 
-        /* Rating principal */
-        .predicted-rating-display {
-            text-align: center;
-            margin: 20px 0;
-        }
-
+        .predicted-rating-display { text-align: center; margin: 10px 0 14px; }
         .predicted-rating-value {
-            font-size: 3.5em;
-            font-weight: bold;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            line-height: 1;
+        font-size: 3.2em;
+        font-weight: 800;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.0;
         }
 
-        .rating-label {
-            color: #999;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-
-        /* Intervalle de confiance */
-        .confidence-interval {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
-            margin: 20px 0;
+        /* =========================================================
+        Intervalles: règle (valeurs uniquement, pas de 50/75/95 affichés)
+        ========================================================= */
+        .ci-block {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 14px 14px 12px;
+        margin: 10px 0 16px;
         }
 
         .interval-label {
-            color: #666;
-            font-size: 0.85em;
-            margin-bottom: 10px;
-            text-align: center;
-            font-weight: 500;
+        color: #666;
+        font-size: 0.90em;
+        margin-bottom: 10px;
+        text-align: center;
+        font-weight: 650;
         }
 
-        .interval-range {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: relative;
+        .ci-axis {
+        position: relative;
+        height: 58px;
+        border-radius: 12px;
         }
 
-        .interval-value {
-            font-size: 1.3em;
-            font-weight: 600;
-            color: #667eea;
-            min-width: 60px;
-            text-align: center;
+        .ci-line{
+        position: absolute;
+        left: 6%;
+        right: 6%;
+        top: 40px;               /* ligne de référence */
+        height: 2px;
+        background: rgba(102,126,234,0.45);
+        border-radius: 999px;
+        z-index: 2;
+        }
+        
+        .ci-band{
+        position: absolute;
+        top: 37px;               /* centrées autour de la ligne */
+        height: 8px;
+        border-radius: 999px;
+        z-index: 1;
+        transition: left .35s ease, width .35s ease;
+        }
+        .ci-band-95{ background: rgba(102,126,234,0.18); }
+        .ci-band-75{ background: rgba(118,75,162,0.22); }
+        .ci-band-50{ background: rgba(102,126,234,0.55); }
+
+        .ci-tick{
+        position: absolute;
+        top: 40px;               /* ancre sur la ligne */
+        transform: translateX(-50%);
+        width: 72px;
+        text-align: center;
+        z-index: 3;
+        pointer-events: none;
         }
 
-        .interval-bar {
-            flex: 1;
-            height: 8px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 4px;
-            margin: 0 15px;
-            position: relative;
+        /* Valeur au-dessus du point */
+        .ci-value{
+        position: absolute;
+        left: 50%;
+        top: -28px;
+        transform: translateX(-50%);
+        font-size: 0.90em;
+        font-weight: 800;
+        color: #333;
+        margin: 0;
         }
 
-        .interval-bar::after {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 12px;
-            height: 12px;
-            background: #764ba2;
-            border-radius: 50%;
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        .ci-tick::after{
+        content: "";
+        position: absolute;
+        left: 50%;
+        top: 0;
+        transform: translate(-50%, -50%);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #667eea;
+        border: 2px solid #fff;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
         }
 
-        /* Barre de confiance principale */
-        .confidence-meter {
-            margin: 20px 0;
+        .ci-tick-95::after{ background: rgba(102,126,234,0.55); }
+        .ci-tick-75::after{ background: rgba(118,75,162,0.55); }
+        .ci-tick-50::after{ background: rgba(102,126,234,0.95); }
+
+        .ci-tick-cur::after{
+        width: 12px;
+        height: 12px;
+        background: #764ba2;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.16);
         }
 
-        .confidence-meter-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
+        .ci-value {
+        font-size: 0.90em;
+        font-weight: 800;
+        color: #333;
+        margin-top: 6px;
         }
 
-        .confidence-meter-label span:first-child {
-            color: #666;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
 
-        .confidence-percentage {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .confidence-bar-track {
-            background: #e0e0e0;
-            height: 30px;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-        }
-
+        /* =========================================================
+        Confiance: suppression de l'ancien "confidence-meter" + jauge
+        ========================================================= */
+        /* Désactive la grosse barre gradient existante (si encore dans le DOM) */
+        .confidence-meter,
+        .confidence-bar-track,
         .confidence-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f5576c 0%, #ffa726 35%, #4caf50 70%, #4caf50 100%);
-            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 15px;
-            position: relative;
+        display: none !important;
         }
 
-        .confidence-bar-fill::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3));
-            animation: shimmer 2s infinite;
+        /* Nouveau panel (jauge + 3 KPIs) */
+        .confidence-panel {
+        display: grid;
+        grid-template-columns: 92px 1fr;
+        gap: 14px;
+        align-items: center;
+        margin: 6px 0 10px;
+        padding: 12px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid rgba(102,126,234,0.12);
         }
 
-        @keyframes shimmer {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
+        .confidence-gauge {
+        --p: 0; /* 0..100, set par JS */
+        width: 92px;
+        height: 92px;
+        border-radius: 50%;
+        background:
+            conic-gradient(
+            #4caf50 calc(var(--p) * 1%),
+            rgba(224,224,224,0.92) 0
+            );
+        display: grid;
+        place-items: center;
+        position: relative;
         }
 
-        /* Facteurs de confiance (breakdown) */
-        .confidence-factors {
-            margin-top: 20px;
+        .confidence-gauge::before {
+        content: "";
+        position: absolute;
+        inset: 8px;
+        background: #fff;
+        border-radius: 50%;
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,0.03);
         }
 
-        .factors-toggle {
-            background: none;
-            border: none;
-            color: #667eea;
-            font-weight: 600;
-            cursor: pointer;
-            padding: 8px 0;
-            width: 100%;
-            text-align: center;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            transition: color 0.3s;
+        .confidence-gauge-inner {
+        position: relative;
+        text-align: center;
+        padding-top: 2px;
         }
 
-        .factors-toggle:hover {
-            color: #764ba2;
+        .confidence-gauge-pct {
+        font-size: 1.25em;
+        font-weight: 900;
+        color: #667eea;
+        line-height: 1.0;
         }
 
-        .factors-toggle-icon {
-            transition: transform 0.3s;
+        .confidence-gauge-label {
+        font-size: 0.78em;
+        color: #888;
+        font-weight: 700;
+        margin-top: 4px;
         }
 
-        .factors-toggle-icon.open {
-            transform: rotate(180deg);
+        .confidence-kpis {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
         }
 
-        .factors-list {
-            display: none;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
+        .confidence-kpi {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 10px;
+        text-align: center;
         }
 
-        .factors-list.open {
-            display: block;
-            animation: slideDown 0.3s ease-out;
+        .confidence-kpi-label {
+        font-size: 0.78em;
+        color: #777;
+        font-weight: 700;
         }
 
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+        .confidence-kpi-value {
+        font-size: 1.05em;
+        color: #333;
+        font-weight: 900;
+        margin-top: 3px;
         }
 
+
+        /* =========================================================
+        Facteurs: toujours visibles (sans bouton)
+        ========================================================= */
+        /* Cache le bouton si présent */
+        .factors-toggle { display: none !important; }
+
+        /* Force l'affichage de la liste */
+        .factors-list { display: block !important; }
+        .factors-list.open { display: block !important; }
+
+        .confidence-factors { margin-top: 10px; }
+
+        /* Reprise/raffinage des items */
         .factor-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #f0f0f0;
         }
 
-        .factor-item:last-child {
-            border-bottom: none;
-        }
+        .factor-item:last-child { border-bottom: none; }
 
         .factor-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: #666;
-            font-size: 0.9em;
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        color: #666;
+        font-size: 0.92em;
         }
 
-        .factor-icon {
-            font-size: 1.2em;
-        }
+        .factor-icon { font-size: 1.1em; }
 
         .factor-value-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
         }
 
         .factor-bar {
-            width: 60px;
-            height: 6px;
-            background: #e0e0e0;
-            border-radius: 3px;
-            overflow: hidden;
+        width: 72px;
+        height: 7px;
+        background: #e0e0e0;
+        border-radius: 999px;
+        overflow: hidden;
         }
 
         .factor-bar-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            transition: width 0.4s ease;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.45s ease;
         }
 
         .factor-value {
-            font-weight: 600;
-            color: #667eea;
-            min-width: 40px;
-            text-align: right;
-            font-size: 0.9em;
+        font-weight: 800;
+        color: #667eea;
+        min-width: 46px;
+        text-align: right;
+        font-size: 0.92em;
         }
 
-        /* Info supplémentaire */
-        .prediction-info {
-            background: #f8f9fa;
-            border-left: 3px solid #667eea;
-            padding: 12px 15px;
-            border-radius: 5px;
-            margin-top: 15px;
-            font-size: 0.85em;
-            color: #666;
-        }
-
-        .prediction-info strong {
-            color: #667eea;
-        }
-
-        /* Tooltip pour les détails */
+        /* =========================================================
+        Tooltips (tu les as déjà, mais je garde une version compacte)
+        ========================================================= */
         .factor-tooltip {
-            position: relative;
-            display: inline-block;
-            cursor: help;
+        position: relative;
+        display: inline-block;
+        cursor: help;
         }
 
         .factor-tooltip:hover::after {
-            content: attr(data-tooltip);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 8px 12px;
-            border-radius: 6px;
-            white-space: nowrap;
-            font-size: 0.8em;
-            z-index: 1000;
-            margin-bottom: 5px;
+        content: attr(data-tooltip);
+        position: absolute;
+        bottom: 120%;
+        left: 50%;
+        transform: translateX(-50%);
+        background: #333;
+        color: #fff;
+        padding: 8px 12px;
+        border-radius: 6px;
+        white-space: nowrap;
+        font-size: 0.80em;
+        z-index: 1000;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.20);
         }
 
         .factor-tooltip:hover::before {
-            content: '';
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            border: 5px solid transparent;
-            border-top-color: #333;
+        content: "";
+        position: absolute;
+        bottom: 110%;
+        left: 50%;
+        transform: translateX(-50%);
+        border: 6px solid transparent;
+        border-top-color: #333;
+        z-index: 1001;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .prediction-cards {
-                grid-template-columns: 1fr;
-            }
-            
-            .predicted-rating-value {
-                font-size: 2.5em;
-            }
+
+        /* =========================================================
+        Responsive
+        ========================================================= */
+        @media (max-width: 900px) {
+        .prediction-cards { grid-template-columns: 1fr; }
+        .predicted-rating-value { font-size: 2.6em; }
+
+        .confidence-panel { grid-template-columns: 86px 1fr; }
+        .confidence-gauge { width: 86px; height: 86px; }
+
+        .ci-tick { width: 64px; }
+        .ci-value { font-size: 0.85em; }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🏓 Table Tennis Elo Ranking</h1>
+        <h1>🏓 Legends Tournament</h1>
         <div class="leaderboard-section">
-            <h2 class="leaderboard-title">Classements</h2>
+            <h2 class="leaderboard-title">Ranking</h2>
             <div class="leaderboards">
                 <div class="leaderboard">
-                    <h3>📊 Système Elo Standard (FFTT)</h3>
+                    <h3>📊 Standard ELO</h3>
                     <div id="leaderboard-standard"></div>
                 </div>
                 <div class="leaderboard">
-                    <h3>📈 Système Elo avec Score</h3>
+                    <h3>📈 Score ELO</h3>
                     <div id="leaderboard-score"></div>
                 </div>
             </div>
         </div>
         <div class="bottom-section">
             <div class="card">
-                <h2>⚔️ Gestion des Matchs</h2>
+                <h2>⚔️ Matchs</h2>
                 <form id="match-form">
                     <div class="form-group">
-                        <label>Joueur 1</label>
+                        <label>Player 1</label>
                         <select id="player1-select" required>
-                            <option value="">Sélectionner un joueur</option>
+                            <option value="">Select player</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Joueur 2</label>
+                        <label>Player 2</label>
                         <select id="player2-select" required>
-                            <option value="">Sélectionner un joueur</option>
+                            <option value="">Select player</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -1055,25 +1066,25 @@ HTML_TEMPLATE = """
                             <input type="number" id="score2" placeholder="Score J2" min="0" required>
                         </div>
                     </div>
-                    <button type="submit">Ajouter le Match</button>
+                    <button type="submit">Add</button>
                 </form>
                 <div class="match-list" id="match-list"></div>
             </div>
             <div class="card">
-                <h2>👥 Gestion des Joueurs</h2>
+                <h2>👥 Players</h2>
                 <form id="player-form">
                     <div class="form-group">
-                        <label>Nom du joueur</label>
-                        <input type="text" id="player-name" placeholder="Entrer un nom" required>
+                        <label>Name</label>
+                        <input type="text" id="player-name" required>
                     </div>
-                    <button type="submit">Ajouter le Joueur</button>
+                    <button type="submit">Add</button>
                 </form>
                 <div class="form-group" style="margin-top: 20px;">
-                    <label>Supprimer un joueur</label>
+                    <label>Delete player</label>
                     <select id="player-delete-select">
-                        <option value="">Sélectionner un joueur</option>
+                        <option value="">Select player</option>
                     </select>
-                    <button class="danger" onclick="deletePlayer()">Supprimer</button>
+                    <button class="danger" onclick="deletePlayer()">Delete</button>
                 </div>
             </div>
         </div>
@@ -1090,320 +1101,280 @@ HTML_TEMPLATE = """
     <div id="player-stats-modal" class="modal">
         <div class="modal-content-large">
             <div class="modal-header">
-                <h2>📊 Statistiques de <span id="stats-player-name"></span></h2>
+                <h2>📊 <span id="stats-player-name"></span></h2>
                 <button class="btn-close" onclick="closePlayerStats()">×</button>
             </div>
 
             <div class="stats-grid">
                 <div class="stat-card">
-                    <div class="stat-label">Elo Standard</div>
+                    <div class="stat-label">ELO</div>
                     <div class="stat-value" id="stats-elo-standard">-</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Elo avec Score</div>
+                    <div class="stat-label">Score</div>
                     <div class="stat-value" id="stats-elo-score">-</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Matchs Joués</div>
+                    <div class="stat-label">Played matchs</div>
                     <div class="stat-value" id="stats-total-matches">-</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Victoires</div>
+                    <div class="stat-label">Wins</div>
                     <div class="stat-value stat-green" id="stats-wins">-</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Défaites</div>
+                    <div class="stat-label">Looses</div>
                     <div class="stat-value stat-red" id="stats-losses">-</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Taux de Victoire</div>
+                    <div class="stat-label">Win rate</div>
                     <div class="stat-value" id="stats-win-rate">-</div>
                 </div>
             </div>
             
             <div class="prediction-section">
-                <h3>🎯 Prédiction de Rating avec Niveau de Confiance</h3>
-                
+                <h3>Ranking Prediction</h3>
+
                 <div class="prediction-cards">
-                    <!-- Carte Elo Standard -->
+
+                    <!-- ===================== -->
+                    <!-- Carte Elo Standard     -->
+                    <!-- ===================== -->
                     <div class="prediction-card">
-                        <div class="prediction-header">
-                            <h4>
-                                <span>📊</span>
-                                Elo Standard
-                            </h4>
-                            <div class="confidence-badge" id="confidence-badge-standard">
-                                -
-                            </div>
-                        </div>
+                    <div class="prediction-header">
+                        <h4><span>📊</span> ELO</h4>
+                        <div class="confidence-badge" id="confidence-badge-standard">-</div>
+                    </div>
 
-                        <div class="predicted-rating-display">
-                            <div class="predicted-rating-value" id="pred-rating-standard">
-                                -
-                            </div>
-                            <div class="rating-label">Rating Prédit</div>
-                        </div>
+                    <div class="predicted-rating-display">
+                        <div class="predicted-rating-value" id="pred-rating-standard">-</div>
+                    </div>
 
-                        <div class="confidence-interval">
-                            <div class="interval-label">Intervalle de confiance à 95%</div>
-                            <div class="interval-range">
-                                <div class="interval-value" id="interval-lower-standard">-</div>
-                                <div class="interval-bar"></div>
-                                <div class="interval-value" id="interval-upper-standard">-</div>
-                            </div>
-                        </div>
+                    <!-- Intervalles : règle (valeurs uniquement) -->
+                    <div class="confidence-interval ci-block">
+                        <div class="interval-label">50% / 75% / 95% confidence intervals</div>
 
-                        <div class="confidence-meter">
-                            <div class="confidence-meter-label">
-                                <span>Niveau de Confiance</span>
-                                <span class="confidence-percentage" id="confidence-pct-standard">-</span>
-                            </div>
-                            <div class="confidence-bar-track">
-                                <div class="confidence-bar-fill" id="confidence-bar-standard" style="width: 0%">
-                                </div>
-                            </div>
-                        </div>
+                        <div class="ci-axis">
+                        <div class="ci-line"></div>
 
-                        <div class="confidence-factors">
-                            <button class="factors-toggle" onclick="toggleFactors('standard')">
-                                <span>Voir les facteurs détaillés</span>
-                                <span class="factors-toggle-icon" id="toggle-icon-standard">▼</span>
-                            </button>
-                            <div class="factors-list" id="factors-list-standard">
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">📊</span>
-                                        <span class="factor-tooltip" data-tooltip="Plus vous jouez, plus votre rating est fiable">
-                                            Nombre de matchs
-                                        </span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-matches-standard" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-matches-val-standard">-</span>
-                                    </div>
-                                </div>
+                        <div class="ci-tick ci-tick-95" id="ci-tick-l95-standard"><div class="ci-value" id="ci-v-l95-standard">-</div></div>
+                        <div class="ci-tick ci-tick-75" id="ci-tick-l75-standard"><div class="ci-value" id="ci-v-l75-standard">-</div></div>
+                        <div class="ci-tick ci-tick-50" id="ci-tick-l50-standard"><div class="ci-value" id="ci-v-l50-standard">-</div></div>
 
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">📉</span>
-                                        <span class="factor-tooltip" data-tooltip="Comparé au joueur le plus actif">
-                                            Écart avec leader
-                                        </span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-gap-standard" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-gap-val-standard">-</span>
-                                    </div>
-                                </div>
+                        <div class="ci-tick ci-tick-cur" id="ci-tick-cur-standard"><div class="ci-value" id="ci-v-cur-standard">-</div></div>
 
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">👥</span>
-                                        <span class="factor-tooltip" data-tooltip="Diversité des adversaires affrontés">
-                                            Diversité adversaires
-                                        </span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-diversity-standard" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-diversity-val-standard">-</span>
-                                    </div>
-                                </div>
-
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">📈</span>
-                                        <span class="factor-tooltip" data-tooltip="Stabilité de vos performances">
-                                            Stabilité du rating
-                                        </span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-stability-standard" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-stability-val-standard">-</span>
-                                    </div>
-                                </div>
-
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">🎯</span>
-                                        <span class="factor-tooltip" data-tooltip="Niveau moyen de vos adversaires">
-                                            Qualité adversaires
-                                        </span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-schedule-standard" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-schedule-val-standard">-</span>
-                                    </div>
-                                </div>
-
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">✓</span>
-                                        <span class="factor-tooltip" data-tooltip="Cohérence entre vos résultats et votre Elo">
-                                            Consistance
-                                        </span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-consistency-standard" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-consistency-val-standard">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="prediction-info">
-                            <strong>RD: <span id="rd-value-standard">-</span></strong> • 
-                            Basé sur <span id="matches-count-standard">-</span> matchs
+                        <div class="ci-tick ci-tick-50" id="ci-tick-r50-standard"><div class="ci-value" id="ci-v-r50-standard">-</div></div>
+                        <div class="ci-tick ci-tick-75" id="ci-tick-r75-standard"><div class="ci-value" id="ci-v-r75-standard">-</div></div>
+                        <div class="ci-tick ci-tick-95" id="ci-tick-r95-standard"><div class="ci-value" id="ci-v-r95-standard">-</div></div>
                         </div>
                     </div>
 
-                    <!-- Carte Elo avec Score (même structure) -->
-                    <div class="prediction-card">
-                        <div class="prediction-header">
-                            <h4>
-                                <span>📈</span>
-                                Elo avec Score
-                            </h4>
-                            <div class="confidence-badge" id="confidence-badge-score">
-                                -
-                            </div>
+                    <!-- Confiance : jauge + stats utiles -->
+                    <div class="confidence-panel">
+                        <div class="confidence-gauge" id="confidence-gauge-standard">
+                        <div class="confidence-gauge-inner">
+                            <div class="confidence-gauge-pct" id="confidence-pct-standard">-</div>
+                            <div class="confidence-gauge-label">Confidence</div>
+                        </div>
                         </div>
 
-                        <div class="predicted-rating-display">
-                            <div class="predicted-rating-value" id="pred-rating-score">
-                                -
-                            </div>
-                            <div class="rating-label">Rating Prédit</div>
+                        <div class="confidence-kpis">
+                        <div class="confidence-kpi">
+                            <div class="confidence-kpi-label">Rating Deviation</div>
+                            <div class="confidence-kpi-value"><span id="rd-value-standard">-</span></div>
                         </div>
-
-                        <div class="confidence-interval">
-                            <div class="interval-label">Intervalle de confiance à 95%</div>
-                            <div class="interval-range">
-                                <div class="interval-value" id="interval-lower-score">-</div>
-                                <div class="interval-bar"></div>
-                                <div class="interval-value" id="interval-upper-score">-</div>
-                            </div>
+                        <div class="confidence-kpi">
+                            <div class="confidence-kpi-label">Effective matches</div>
+                            <div class="confidence-kpi-value"><span id="effective-matches-standard">-</span></div>
                         </div>
-
-                        <div class="confidence-meter">
-                            <div class="confidence-meter-label">
-                                <span>Niveau de Confiance</span>
-                                <span class="confidence-percentage" id="confidence-pct-score">-</span>
-                            </div>
-                            <div class="confidence-bar-track">
-                                <div class="confidence-bar-fill" id="confidence-bar-score" style="width: 0%">
-                                </div>
-                            </div>
+                        <div class="confidence-kpi">
+                            <div class="confidence-kpi-label">Matchs</div>
+                            <div class="confidence-kpi-value"><span id="matches-count-standard">-</span></div>
                         </div>
-
-                        <div class="confidence-factors">
-                            <button class="factors-toggle" onclick="toggleFactors('score')">
-                                <span>Voir les facteurs détaillés</span>
-                                <span class="factors-toggle-icon" id="toggle-icon-score">▼</span>
-                            </button>
-                            <div class="factors-list" id="factors-list-score">
-                                <!-- Même structure que standard -->
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">📊</span>
-                                        <span>Nombre de matchs</span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-matches-score" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-matches-val-score">-</span>
-                                    </div>
-                                </div>
-
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">📉</span>
-                                        <span>Écart avec leader</span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-gap-score" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-gap-val-score">-</span>
-                                    </div>
-                                </div>
-
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">👥</span>
-                                        <span>Diversité adversaires</span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-diversity-score" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-diversity-val-score">-</span>
-                                    </div>
-                                </div>
-
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">📈</span>
-                                        <span>Stabilité du rating</span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-stability-score" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-stability-val-score">-</span>
-                                    </div>
-                                </div>
-
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">🎯</span>
-                                        <span>Qualité adversaires</span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-schedule-score" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-schedule-val-score">-</span>
-                                    </div>
-                                </div>
-
-                                <div class="factor-item">
-                                    <div class="factor-label">
-                                        <span class="factor-icon">✓</span>
-                                        <span>Consistance</span>
-                                    </div>
-                                    <div class="factor-value-container">
-                                        <div class="factor-bar">
-                                            <div class="factor-bar-fill" id="factor-consistency-score" style="width: 0%"></div>
-                                        </div>
-                                        <span class="factor-value" id="factor-consistency-val-score">-</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="prediction-info">
-                            <strong>RD: <span id="rd-value-score">-</span></strong> • 
-                            Basé sur <span id="matches-count-score">-</span> matchs
                         </div>
                     </div>
+
+                    <!-- Facteurs (toujours visibles) -->
+                    <div class="confidence-factors">
+                        <div class="factors-list open" id="factors-list-standard">
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">📊</span><span class="factor-tooltip" data-tooltip="The more you play, the more your rating is correct">Matchs amount</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-matches-standard" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-matches-val-standard">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">👥</span><span class="factor-tooltip" data-tooltip="Diversity of your opponents">Opponents diversity</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-diversity-standard" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-diversity-val-standard">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">📈</span><span class="factor-tooltip" data-tooltip="The more you're playing vs same opponent over days, the lower confidence is">Same opponent nerf</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-repeat-standard" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-repeat-val-standard">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">✓</span><span class="factor-tooltip" data-tooltip="50/50 matches are more informative">50/50 matches</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-info-standard" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-info-val-standard">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">🎯</span><span class="factor-tooltip" data-tooltip="Confidence of opponents">Opponenents confidence</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-opponents-standard" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-opponents-val-standard">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">📉</span><span class="factor-tooltip" data-tooltip="The more rank is diffrerent, the less it's confident">Rank gap nerf</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-gap-standard" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-gap-val-standard">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">↔</span><span class="factor-tooltip" data-tooltip="ABS Average with opponents">Opponent average gap</span></div>
+                            <div class="factor-value-container">
+                            <span class="factor-value" id="mean-gap-standard">-</span>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
+                    <!-- ===================== -->
+                    <!-- Carte Elo avec Score   -->
+                    <!-- ===================== -->
+                    <div class="prediction-card">
+                    <div class="prediction-header">
+                        <h4><span>📈</span> Score</h4>
+                        <div class="confidence-badge" id="confidence-badge-score">-</div>
+                    </div>
+
+                    <div class="predicted-rating-display">
+                        <div class="predicted-rating-value" id="pred-rating-score">-</div>
+                    </div>
+
+                    <div class="confidence-interval ci-block">
+                        <div class="interval-label">50% / 75% / 95% confidence intervals</div>
+
+                        <div class="ci-axis">
+                        <div class="ci-line"></div>
+
+                        <div class="ci-tick ci-tick-95" id="ci-tick-l95-score"><div class="ci-value" id="ci-v-l95-score">-</div></div>
+                        <div class="ci-tick ci-tick-75" id="ci-tick-l75-score"><div class="ci-value" id="ci-v-l75-score">-</div></div>
+                        <div class="ci-tick ci-tick-50" id="ci-tick-l50-score"><div class="ci-value" id="ci-v-l50-score">-</div></div>
+
+                        <div class="ci-tick ci-tick-cur" id="ci-tick-cur-score"><div class="ci-value" id="ci-v-cur-score">-</div></div>
+
+                        <div class="ci-tick ci-tick-50" id="ci-tick-r50-score"><div class="ci-value" id="ci-v-r50-score">-</div></div>
+                        <div class="ci-tick ci-tick-75" id="ci-tick-r75-score"><div class="ci-value" id="ci-v-r75-score">-</div></div>
+                        <div class="ci-tick ci-tick-95" id="ci-tick-r95-score"><div class="ci-value" id="ci-v-r95-score">-</div></div>
+                        </div>
+                    </div>
+
+                    <div class="confidence-panel">
+                        <div class="confidence-gauge" id="confidence-gauge-score">
+                        <div class="confidence-gauge-inner">
+                            <div class="confidence-gauge-pct" id="confidence-pct-score">-</div>
+                            <div class="confidence-gauge-label">Confidence</div>
+                        </div>
+                        </div>
+
+                        <div class="confidence-kpis">
+                        <div class="confidence-kpi">
+                            <div class="confidence-kpi-label">Rating Deviation</div>
+                            <div class="confidence-kpi-value"><span id="rd-value-score">-</span></div>
+                        </div>
+                        <div class="confidence-kpi">
+                            <div class="confidence-kpi-label">Effective matches</div>
+                            <div class="confidence-kpi-value"><span id="effective-matches-score">-</span></div>
+                        </div>
+                        <div class="confidence-kpi">
+                            <div class="confidence-kpi-label">Matchs</div>
+                            <div class="confidence-kpi-value"><span id="matches-count-score">-</span></div>
+                        </div>
+                        </div>
+                    </div>
+
+                    <div class="confidence-factors">
+                        <div class="factors-list open" id="factors-list-score">
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">📊</span><span class="factor-tooltip" data-tooltip="The more you play, the more your rating is correct">Matchs amount</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-matches-score" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-matches-val-score">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">👥</span><span class="factor-tooltip" data-tooltip="Diversity of your opponents">Opponents diversity</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-diversity-score" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-diversity-val-score">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">📈</span><span class="factor-tooltip" data-tooltip="The more you're playing vs same opponent over days, the lower confidence is">Same opponent nerf</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-repeat-score" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-repeat-val-score">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">✓</span><span class="factor-tooltip" data-tooltip="50/50 matches are more informative">50/50 matches</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-info-score" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-info-val-score">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">🎯</span><span class="factor-tooltip" data-tooltip="Confidence of opponents">Opponenents confidence</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-opponents-score" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-opponents-val-score">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">📉</span><span class="factor-tooltip" data-tooltip="The more rank is diffrerent, the less it's confident">Rank gap nerf</span></div>
+                            <div class="factor-value-container">
+                            <div class="factor-bar"><div class="factor-bar-fill" id="factor-gap-score" style="width:0%"></div></div>
+                            <span class="factor-value" id="factor-gap-val-score">-</span>
+                            </div>
+                        </div>
+
+                        <div class="factor-item">
+                            <div class="factor-label"><span class="factor-icon">↔</span><span class="factor-tooltip" data-tooltip="ABS Average with opponents">Opponent average gap</span></div>
+                            <div class="factor-value-container">
+                            <span class="factor-value" id="mean-gap-score">-</span>
+                            </div>
+                        </div>
+                        </div>
+                    </div>
+                    </div>
+
                 </div>
             </div>
             
             <div class="chart-section">
-                <h3>📈 Évolution de l'Elo</h3>
+                <h3>📈 Rank Evolution</h3>
                 <div class="chart-container">
                     <canvas id="player-elo-chart"></canvas>
                 </div>
@@ -1411,41 +1382,41 @@ HTML_TEMPLATE = """
 
             <div class="stats-sections">
                 <div class="stats-section">
-                    <h3>🏆 Top Adversaires</h3>
+                    <h3>🏆 Best opponents</h3>
                     <div id="stats-top-opponents" class="opponents-list"></div>
                 </div>
 
                 <div class="stats-section">
-                    <h3>📜 Historique des Matchs</h3>
+                    <h3>📜 Matchs history</h3>
                     <div id="stats-match-history" class="match-history-list"></div>
                 </div>
             </div>
 
             <div class="modal-footer">
-                <button id="btn-compare-player" class="btn-primary">Comparer</button>
+                <button id="btn-compare-player" class="btn-primary">Compare</button>
             </div>
         </div>
     </div>
     <div id="compare-modal" class="modal">
         <div class="modal-content">
-            <h3>Comparer avec un adversaire</h3>
-            <p>Joueur 1 : <strong id="compare-player1-name"></strong></p>
+            <h3>Compare with opponent</h3>
+            <p>Player 1 : <strong id="compare-player1-name"></strong></p>
 
             <div class="form-group">
-                <label>Joueur 2</label>
+                <label>Player 2</label>
                 <select id="compare-player2-select"></select>
             </div>
 
             <div class="modal-buttons">
-                <button onclick="closeCompareModal()">Annuler</button>
-                <button class="btn-primary" onclick="confirmComparison()">Comparer</button>
+                <button onclick="closeCompareModal()">Cancel</button>
+                <button class="btn-primary" onclick="confirmComparison()">Compare</button>
             </div>
         </div>
     </div>
     <div id="comparison-results-modal" class="modal">
         <div class="modal-content-large">
             <div class="modal-header">
-                <h2>⚔️ Comparaison</h2>
+                <h2>⚔️ Compare</h2>
                 <button class="btn-close" onclick="closeComparisonResults()">×</button>
             </div>
 
@@ -1454,15 +1425,15 @@ HTML_TEMPLATE = """
                     <h3 id="comp-p1-name">-</h3>
                     <div class="comp-stats">
                         <div class="comp-stat">
-                            <span class="comp-label">Elo Standard</span>
+                            <span class="comp-label">ELO</span>
                             <span class="comp-value" id="comp-p1-elo-std">-</span>
                         </div>
                         <div class="comp-stat">
-                            <span class="comp-label">Elo Score</span>
+                            <span class="comp-label">Score</span>
                             <span class="comp-value" id="comp-p1-elo-score">-</span>
                         </div>
                         <div class="comp-stat highlight">
-                            <span class="comp-label">Victoires (H2H)</span>
+                            <span class="comp-label">Wins</span>
                             <span class="comp-value" id="comp-p1-wins">-</span>
                         </div>
                     </div>
@@ -1474,15 +1445,15 @@ HTML_TEMPLATE = """
                     <h3 id="comp-p2-name">-</h3>
                     <div class="comp-stats">
                         <div class="comp-stat">
-                            <span class="comp-label">Elo Standard</span>
+                            <span class="comp-label">ELO</span>
                             <span class="comp-value" id="comp-p2-elo-std">-</span>
                         </div>
                         <div class="comp-stat">
-                            <span class="comp-label">Elo Score</span>
+                            <span class="comp-label">Score</span>
                             <span class="comp-value" id="comp-p2-elo-score">-</span>
                         </div>
                         <div class="comp-stat highlight">
-                            <span class="comp-label">Victoires (H2H)</span>
+                            <span class="comp-label">Wins</span>
                             <span class="comp-value" id="comp-p2-wins">-</span>
                         </div>
                     </div>
@@ -1490,14 +1461,14 @@ HTML_TEMPLATE = """
             </div>
 
             <div class="chart-section">
-                <h3>📊 Évolution Comparative</h3>
+                <h3>📊 Ranking evolution</h3>
                 <div class="chart-container">
                     <canvas id="comparison-elo-chart"></canvas>
                 </div>
             </div>
 
             <div class="h2h-section">
-                <h3>📋 Confrontations Directes</h3>
+                <h3>📋 Direct matchs</h3>
                 <div id="h2h-history" class="h2h-list"></div>
             </div>
         </div>
@@ -1560,7 +1531,7 @@ HTML_TEMPLATE = """
             ];
             selects.forEach(select => {
                 const currentValue = select.value;
-                select.innerHTML = '<option value="">Sélectionner un joueur</option>' +
+                select.innerHTML = '<option value="">Select player</option>' +
                     players.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
                 select.value = currentValue;
             });
@@ -1584,7 +1555,7 @@ HTML_TEMPLATE = """
                                 </div>
                                 <div class="elo-changes">
                                     <span class="elo-badge ${p1Changes.standard >= 0 ? 'elo-positive' : 'elo-negative'}">
-                                        Std: ${p1Changes.standard >= 0 ? '+' : ''}${p1Changes.standard.toFixed(1)}
+                                        ELO: ${p1Changes.standard >= 0 ? '+' : ''}${p1Changes.standard.toFixed(1)}
                                     </span>
                                     <span class="elo-badge ${p1Changes.with_score >= 0 ? 'elo-positive' : 'elo-negative'}">
                                         Score: ${p1Changes.with_score >= 0 ? '+' : ''}${p1Changes.with_score.toFixed(1)}
@@ -1600,7 +1571,7 @@ HTML_TEMPLATE = """
                                 </div>
                                 <div class="elo-changes">
                                     <span class="elo-badge ${p2Changes.standard >= 0 ? 'elo-positive' : 'elo-negative'}">
-                                        Std: ${p2Changes.standard >= 0 ? '+' : ''}${p2Changes.standard.toFixed(1)}
+                                        ELO: ${p2Changes.standard >= 0 ? '+' : ''}${p2Changes.standard.toFixed(1)}
                                     </span>
                                     <span class="elo-badge ${p2Changes.with_score >= 0 ? 'elo-positive' : 'elo-negative'}">
                                         Score: ${p2Changes.with_score >= 0 ? '+' : ''}${p2Changes.with_score.toFixed(1)}
@@ -1610,7 +1581,7 @@ HTML_TEMPLATE = """
                         </div>
                         <div class="match-footer">
                             <span class="match-date">
-                                ${new Date(m.played_at).toLocaleDateString('fr-FR', {
+                                ${new Date(m.played_at).toLocaleDateString('en-US', {
                                     day: 'numeric',
                                     month: 'long',
                                     year: 'numeric',
@@ -1619,7 +1590,7 @@ HTML_TEMPLATE = """
                                 })}
                             </span>
                             <button class="danger" onclick="showDeleteMatchModal(${m.id})">
-                                Supprimer
+                                Delete
                             </button>
                         </div>
                     </div>
@@ -1665,19 +1636,19 @@ HTML_TEMPLATE = """
         function showDeleteMatchModal(matchId) {
             pendingAction = { type: 'match', id: matchId };
             document.getElementById('modal-message').textContent = 
-                'Êtes-vous sûr de vouloir supprimer ce match ? Les classements seront recalculés.';
+                'Are you sure to delete this match ?';
             document.getElementById('confirm-modal').style.display = 'block';
         }
         async function deletePlayer() {
             const playerId = document.getElementById('player-delete-select').value;
             if (!playerId) {
-                alert('Veuillez sélectionner un joueur');
+                alert('Plz, select a player');
                 return;
             }
             pendingAction = { type: 'player', id: playerId };
             const playerName = players.find(p => p.id == playerId).name;
             document.getElementById('modal-message').textContent = 
-                `Êtes-vous sûr de vouloir supprimer ${playerName} ?`;
+                `Are you sure to delete ${playerName} ?`;
             document.getElementById('confirm-modal').style.display = 'block';
         }
         async function confirmAction() {
@@ -1687,7 +1658,7 @@ HTML_TEMPLATE = """
                 const response = await fetch(`/api/players?id=${pendingAction.id}`, { method: 'DELETE' });
                 if (!response.ok) {
                     const error = await response.json();
-                    alert(`Impossible de supprimer: ${error.error}`);
+                    alert(`Cannot delete: ${error.error}`);
                     closeModal();
                     return;
                 }
@@ -1729,10 +1700,10 @@ HTML_TEMPLATE = """
             const historyHtml = data.matches_history.map(m => {
                 const eloChange = m.elo_change || { standard: 0, with_score: 0 };
                 return `
-                    <div class="history-item ${m.result === 'Victoire' ? 'victory' : 'defeat'}">
+                    <div class="history-item ${m.result === 'Win' ? 'victory' : 'defeat'}">
                         <div class="history-details">
-                            <span class="history-result ${m.result === 'Victoire' ? 'victory' : 'defeat'}">
-                                ${m.result === 'Victoire' ? '✓' : '✗'} ${m.result}
+                            <span class="history-result ${m.result === 'Win' ? 'victory' : 'defeat'}">
+                                ${m.result === 'Win' ? '✓' : '✗'} ${m.result}
                             </span>
                             <span class="history-opponent">${m.opponent}</span>
                             <span class="history-score">${m.score}</span>
@@ -1740,7 +1711,7 @@ HTML_TEMPLATE = """
                         </div>
                         <div class="history-elo-change">
                             <span class="elo-badge ${eloChange.standard >= 0 ? 'elo-positive' : 'elo-negative'}">
-                                Std: ${eloChange.standard >= 0 ? '+' : ''}${eloChange.standard.toFixed(1)}
+                                ELO: ${eloChange.standard >= 0 ? '+' : ''}${eloChange.standard.toFixed(1)}
                             </span>
                             <span class="elo-badge ${eloChange.with_score >= 0 ? 'elo-positive' : 'elo-negative'}">
                                 Score: ${eloChange.with_score >= 0 ? '+' : ''}${eloChange.with_score.toFixed(1)}
@@ -1756,7 +1727,7 @@ HTML_TEMPLATE = """
                 <div class="opponent-item">
                     <span class="opponent-name">${opp.name}</span>
                     <span class="opponent-record">${opp.wins}V - ${opp.losses}D (${opp.matches} matchs)</span>
-                    <button onclick="startComparison(${data.player.id}, ${opp.id})" class="btn-small">Comparer</button>
+                    <button onclick="startComparison(${data.player.id}, ${opp.id})" class="btn-small">Compare</button>
                 </div>
             `).join('');
             document.getElementById('stats-top-opponents').innerHTML = opponentsHtml || '<p>Aucun adversaire</p>';
@@ -1913,7 +1884,7 @@ HTML_TEMPLATE = """
         async function confirmComparison() {
             comparePlayer2Id = document.getElementById('compare-player2-select').value;
             if (!comparePlayer2Id) {
-                alert('Veuillez sélectionner un adversaire');
+                alert('Plz, select an opponent');
                 return;
             }
             showComparison();
@@ -1942,7 +1913,7 @@ HTML_TEMPLATE = """
                     <span class="h2h-winner">🏆 ${m.winner}</span>
                 </div>
             `).join('');
-            document.getElementById('h2h-history').innerHTML = h2hHtml || '<p>Aucune confrontation directe</p>';
+            document.getElementById('h2h-history').innerHTML = h2hHtml || '<p>No match found</p>';
 
             // ⭐ Fermer la modal de sélection, ouvrir celle des résultats
             document.getElementById('compare-modal').style.display = 'none';
@@ -1995,7 +1966,7 @@ HTML_TEMPLATE = """
                     data: {
                         datasets: [
                             {
-                                label: `${player1Name} (Standard)`,
+                                label: `${player1Name} (ELO)`,
                                 data: data1.history.map(h => ({
                                     x: new Date(h.date),
                                     y: h.elo_standard
@@ -2018,7 +1989,7 @@ HTML_TEMPLATE = """
                                 borderWidth: 2
                             },
                             {
-                                label: `${player2Name} (Standard)`,
+                                label: `${player2Name} (ELO)`,
                                 data: data2.history.map(h => ({
                                     x: new Date(h.date),
                                     y: h.elo_standard
@@ -2057,7 +2028,7 @@ HTML_TEMPLATE = """
                             tooltip: {
                                 callbacks: {
                                     title: function(context) {
-                                        return new Date(context[0].parsed.x).toLocaleDateString('fr-FR');
+                                        return new Date(context[0].parsed.x);
                                     }
                                 }
                             }
@@ -2068,7 +2039,7 @@ HTML_TEMPLATE = """
                                 time: {
                                     unit: 'day',
                                     displayFormats: {
-                                        day: 'dd MMM'
+                                        day: 'dd/MM'
                                     }
                                 },
                                 min: globalMin,
@@ -2089,9 +2060,9 @@ HTML_TEMPLATE = """
                     }
                 });
             } catch (error) {
-                console.error('Erreur lors du chargement du graphique de comparaison:', error);
+                console.error('Error while loading graph', error);
                 document.querySelector('#comparison-elo-chart').parentElement.innerHTML = 
-                    '<p style="text-align: center; color: #f44336; padding: 40px;">Erreur lors du chargement du graphique</p>';
+                    '<p style="text-align: center; color: #f44336; padding: 40px;">Error while loading graph</p>';
             }
         }
 
@@ -2115,68 +2086,163 @@ HTML_TEMPLATE = """
             icon.classList.toggle('open');
         }
 
-        function getConfidenceLabel(confidence) {
-            if (confidence >= 80) return '🟢 Élevée';
-            if (confidence >= 60) return '🟡 Moyenne';
-            if (confidence >= 40) return '🟠 Faible';
-            return '🔴 Très faible';
+        function clamp(x, lo, hi) {
+            return Math.max(lo, Math.min(hi, x));
+        }
+
+        function getConfidenceLabel(confidencePct) {
+            const c = Number(confidencePct);
+            if (c >= 80) return '🟢 High Confidence';
+            if (c >= 60) return '🟡 Medium Confidence';
+            if (c >= 40) return '🟠 Low Confidence';
+            return '🔴 Really Low Confidence';
         }
 
         function populatePredictionCard(type, confData, matchCount) {
-            // Badge de confiance
-            document.getElementById(`confidence-badge-${type}`).textContent = 
-                getConfidenceLabel(confData.confidence);
-            
-            // Rating prédit
-            document.getElementById(`pred-rating-${type}`).textContent = 
-                confData.predicted_rating;
-            
-            // Intervalle
-            document.getElementById(`interval-lower-${type}`).textContent = 
-                confData.lower;
-            document.getElementById(`interval-upper-${type}`).textContent = 
-                confData.upper;
-            
-            // Pourcentage de confiance
-            document.getElementById(`confidence-pct-${type}`).textContent = 
-                confData.confidence.toFixed(0) + '%';
-            
-            // Barre de confiance avec animation
-            setTimeout(() => {
-                document.getElementById(`confidence-bar-${type}`).style.width = 
-                    confData.confidence + '%';
-            }, 100);
-            
-            // Facteurs détaillés
-            if (confData.factors) {
-                const factors = confData.factors;
-                
-                // Pour chaque facteur
-                Object.keys(factors).forEach(key => {
-                    const value = factors[key];
-                    const factorKey = key.replace('_', '-');
-                    
-                    // Barre
-                    setTimeout(() => {
-                        const barElement = document.getElementById(`factor-${factorKey}-${type}`);
-                        if (barElement) {
-                            barElement.style.width = value + '%';
-                        }
-                    }, 200);
-                    
-                    // Valeur
-                    const valElement = document.getElementById(`factor-${factorKey}-val-${type}`);
-                    if (valElement) {
-                        valElement.textContent = value.toFixed(0) + '%';
-                    }
-                });
+            if (!confData) return;
+
+            const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+
+            // ---- Badge + rating ----
+            const badge = document.getElementById(`confidence-badge-${type}`);
+            if (badge) badge.textContent = getConfidenceLabel(confData.confidence);
+
+            const pred = document.getElementById(`pred-rating-${type}`);
+            if (pred) pred.textContent = confData.predicted_rating ?? "-";
+
+            // ---- Intervals data (50/75/95) ----
+            const i50 = confData.intervals?.["50"];
+            const i75 = confData.intervals?.["75"];
+            const i95 = confData.intervals?.["95"];
+
+            // Fallback 95 si le backend n'envoie pas "intervals" (ancien format)
+            const fallback95 =
+                (!i95 && confData.lower != null && confData.upper != null)
+                ? { lower: confData.lower, upper: confData.upper }
+                : null;
+
+            const i95ok = i95 ?? fallback95;
+            if (!i95ok || i95ok.lower == null || i95ok.upper == null) return;
+
+            const fmt = (x) => {
+                const n = Number(x);
+                return (x === undefined || x === null || Number.isNaN(n)) ? "-" : n.toFixed(1);
+            };
+
+            // ---- Valeurs (texte) sous les ticks ----
+            const setText = (id, txt) => {
+                const el = document.getElementById(id);
+                if (el) el.textContent = txt;
+            };
+
+            setText(`ci-v-l95-${type}`, fmt(i95ok.lower));
+            setText(`ci-v-l75-${type}`, fmt(i75?.lower));
+            setText(`ci-v-l50-${type}`, fmt(i50?.lower));
+            setText(`ci-v-cur-${type}`, fmt(confData.predicted_rating));
+            setText(`ci-v-r50-${type}`, fmt(i50?.upper));
+            setText(`ci-v-r75-${type}`, fmt(i75?.upper));
+            setText(`ci-v-r95-${type}`, fmt(i95ok.upper));
+
+            // ---- Positionnement (EN ELO) ----
+            // On place tout sur une échelle [lower95, upper95] => [0..1]
+            const minX = Number(i95ok.lower);
+            const maxX = Number(i95ok.upper);
+            const range = Math.max(1e-9, maxX - minX);
+
+            const pos01 = (val) => (Number(val) - minX) / range;
+
+            // Padding visuel (doit matcher ton CSS .ci-line left/right)
+            const pad = 6;         // %
+            const span = 100 - 2 * pad;
+            const toPct = (x01) => `${pad + clamp(x01, 0, 1) * span}%`;
+
+            const setLeft = (id, x01) => {
+                const el = document.getElementById(id);
+                if (el) el.style.left = toPct(x01);
+            };
+
+            // Ticks (si valeur absente, on ne bouge pas)
+            setLeft(`ci-tick-l95-${type}`, pos01(i95ok.lower));
+            setLeft(`ci-tick-r95-${type}`, pos01(i95ok.upper));
+
+            if (i75?.lower != null) setLeft(`ci-tick-l75-${type}`, pos01(i75.lower));
+            if (i75?.upper != null) setLeft(`ci-tick-r75-${type}`, pos01(i75.upper));
+
+            if (i50?.lower != null) setLeft(`ci-tick-l50-${type}`, pos01(i50.lower));
+            if (i50?.upper != null) setLeft(`ci-tick-r50-${type}`, pos01(i50.upper));
+
+            if (confData.predicted_rating != null) {
+                setLeft(`ci-tick-cur-${type}`, pos01(confData.predicted_rating));
             }
-            
-            // Info RD et matchs
-            document.getElementById(`rd-value-${type}`).textContent = 
-                confData.rd.toFixed(0);
-            document.getElementById(`matches-count-${type}`).textContent = 
-                matchCount;
+
+            // ---- Bandes (optionnel si tu as ajouté ci-band-95/75/50 dans le HTML) ----
+            const setBand = (id, leftVal, rightVal) => {
+                const el = document.getElementById(id);
+                if (!el || leftVal == null || rightVal == null) return;
+
+                const l = pad + clamp(pos01(leftVal), 0, 1) * span;
+                const r = pad + clamp(pos01(rightVal), 0, 1) * span;
+
+                el.style.left = `${l}%`;
+                el.style.width = `${Math.max(0, r - l)}%`;
+            };
+
+            setBand(`ci-band-95-${type}`, i95ok.lower, i95ok.upper);
+            setBand(`ci-band-75-${type}`, i75?.lower, i75?.upper);
+            setBand(`ci-band-50-${type}`, i50?.lower, i50?.upper);
+
+            // ---- Confiance : jauge ----
+            const pct = clamp(Number(confData.confidence ?? 0), 0, 100);
+
+            const gauge = document.getElementById(`confidence-gauge-${type}`);
+            if (gauge) gauge.style.setProperty('--p', pct);
+
+            const confPct = document.getElementById(`confidence-pct-${type}`);
+            if (confPct) confPct.textContent = `${pct.toFixed(0)}%`;
+
+            // ---- KPIs ----
+            const rdEl = document.getElementById(`rd-value-${type}`);
+            if (rdEl) rdEl.textContent = Number(confData.rd ?? 0).toFixed(0);
+
+            const factors = confData.factors || {};
+
+            const effEl = document.getElementById(`effective-matches-${type}`);
+            if (effEl) {
+                effEl.textContent =
+                (factors.effective_matches == null) ? "-" : Number(factors.effective_matches).toFixed(1);
+            }
+
+            const mcEl = document.getElementById(`matches-count-${type}`);
+            if (mcEl) mcEl.textContent = matchCount ?? "-";
+
+            // ---- Factors (toujours visibles) ----
+            const factorMap = {
+                matches: "matches",
+                diversity: "diversity",
+                repeat_penalty: "repeat",
+                informativeness: "info",
+                opponents_reliability: "opponents",
+                gap_penalty: "gap",
+            };
+
+            Object.entries(factorMap).forEach(([backendKey, domKey]) => {
+                const raw = factors[backendKey];
+                if (raw === undefined || raw === null || Number.isNaN(Number(raw))) return;
+
+                const fpct = clamp(Number(raw) * 100, 0, 100);
+
+                const barEl = document.getElementById(`factor-${domKey}-${type}`);
+                if (barEl) barEl.style.width = `${fpct}%`;
+
+                const valEl = document.getElementById(`factor-${domKey}-val-${type}`);
+                if (valEl) valEl.textContent = `${fpct.toFixed(0)}%`;
+            });
+
+            const gapEl = document.getElementById(`mean-gap-${type}`);
+            if (gapEl) {
+                gapEl.textContent =
+                (factors.mean_gap == null) ? "-" : Number(factors.mean_gap).toFixed(0);
+            }
         }
 
         loadData();

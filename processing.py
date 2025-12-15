@@ -1,5 +1,5 @@
 import math
-import numpy as np
+from collections import defaultdict
 
 from db import get_db_connection
 
@@ -219,124 +219,148 @@ def recalculate_after_timestamp(timestamp, excluded_match_id):
     for match_id, p1_id, p2_id, s1, s2 in matches_to_recalc:
         update_ratings(p1_id, p2_id, s1, s2, match_id)
 
-def calculate_advanced_confidence(player_data, all_players_data, all_matches):
+def calculate_advanced_confidence(player_id, player_data, all_players_data, all_matches,
+                                 aim_matches=50,
+                                 rd_min=25, rd_max=250,
+                                 gap_scale=200.0,
+                                 eff_decay=15.0):
     """
-    Calcule un score de confiance multi-facteurs adapté au ping-pong
-    
-    Args:
-        player_data: {id, num_matches, opponents_faced, elo_history, elo_current}
-        all_players_data: Liste de tous les joueurs avec leurs stats
-        all_matches: Tous les matchs de la base
-    
-    Returns:
-        Dict avec predicted_rating, lower, upper, confidence, factors_breakdown
+    Heuristique adaptée petit pool (<=15), adversaires répétés, écarts de niveau fréquents.
+
+    Renvoie:
+    - predicted_rating
+    - rd
+    - confidence (0..100)
+    - lower/upper (compat: 95%)
+    - intervals: { "50": {lower, upper, z}, "75": ..., "95": ... }
+    - factors (0..1 + valeurs brutes)
     """
-    
-    # 1. FACTEUR: Nombre de matchs (base Glicko modifiée)
-    num_matches = player_data['num_matches']
-    max_matches = max(p['num_matches'] for p in all_players_data)
-    
-    # Pénalité d'écart avec le joueur le plus actif
-    match_gap_ratio = num_matches / max_matches if max_matches > 0 else 0
-    # Fonction de pénalité douce : 50 matchs = ~90% confiance, 10 matchs = ~45%
-    f_matches = 100 * (1 - math.exp(-num_matches / 30))
-    f_gap = 100 * match_gap_ratio  # Pénalité linéaire sur l'écart
-    
-    
-    # 2. FACTEUR: Diversité des adversaires
-    total_players = len(all_players_data) - 1  # Exclure le joueur lui-même
-    opponents_faced = len(player_data['opponents_faced'])
-    
-    diversity_ratio = opponents_faced / total_players if total_players > 0 else 0
-    # Bonus pour avoir affronté beaucoup de joueurs différents
-    f_diversity = 100 * diversity_ratio
-    
-    
-    # 3. FACTEUR: Volatilité/Inertie du rating
-    # Calcule l'écart-type des changements d'Elo récents
-    if len(player_data['elo_changes']) > 5:
-        recent_changes = player_data['elo_changes'][-20:]  # 20 derniers matchs
-        volatility = np.std(recent_changes)
-        
-        # Normalisation : volatilité faible = confiance élevée
-        # Pour le ping-pong, on s'attend à +/- 5-10 points par match
-        # Volatilité > 15 = joueur instable, < 5 = très stable
-        f_stability = 100 * (1 - min(volatility / 20, 1))
+    def clamp(x, lo=0.0, hi=1.0):
+        return max(lo, min(hi, x))
+
+    current_elo = float(player_data.get("elo_current", 0.0))
+    num_matches = int(player_data.get("num_matches", 0))
+    opponents_faced = set(player_data.get("opponents_faced", set()) or set())
+
+    # Index joueurs (elo + volume) pour les adversaires
+    by_id = {p["id"]: p for p in all_players_data if "id" in p}
+    pool_size = len(by_id)
+
+    # Compter les matchs vs chaque adversaire (à partir de all_matches)
+    vs_counts = defaultdict(int)
+    for m in all_matches:
+        p1, p2 = m.get("player1_id"), m.get("player2_id")
+        if p1 == player_id and p2 in by_id:
+            vs_counts[p2] += 1
+        elif p2 == player_id and p1 in by_id:
+            vs_counts[p1] += 1
+
+    # ----- FACTEURS EXPLICATIFS (0..1) -----
+
+    # 1) Volume brut (saturant vite pour convergence pragmatique)
+    f_matches = 1.0 - math.exp(-num_matches / max(1.0, aim_matches))
+
+    # 2) Diversité (sur un petit pool, c'est très important pour "caler" le niveau)
+    denom = max(1, pool_size - 1)
+    f_diversity = clamp(len(opponents_faced) / denom)
+
+    # 3) Répétition (pénalise si on joue toujours la même personne)
+    if num_matches <= 0 or len(vs_counts) == 0:
+        f_repeat = 0.0
     else:
-        # Pas assez de données, confiance moyenne
-        f_stability = 50
-    
-    
-    # 4. FACTEUR: Qualité des adversaires (Strength of Schedule)
-    # Compare l'Elo moyen des adversaires avec l'Elo moyen global
-    if player_data['avg_opponent_elo'] and all_players_data:
-        global_avg_elo = np.mean([p['elo'] for p in all_players_data])
-        opponent_quality = player_data['avg_opponent_elo'] / global_avg_elo
-        
-        # Bonus si on affronte des joueurs de niveau varié/élevé
-        # Optimal si ratio proche de 1.0 (adversaires représentatifs)
-        f_schedule = 100 * (1 - abs(1 - opponent_quality) * 0.5)
+        ps = [c / num_matches for c in vs_counts.values()]
+        hhi = sum(p * p for p in ps)  # 1 => tout sur un seul adversaire
+        k = max(1, len(vs_counts))
+        f_repeat = 0.0 if k == 1 else clamp(1.0 - (hhi - 1.0 / k) / (1.0 - 1.0 / k))
+
+    # 4) Informativité (max si p≈0.5, min si match "joué d'avance")
+    probs = player_data.get("expected_win_probs") or []
+    if probs:
+        info_vals = [4.0 * p * (1.0 - p) for p in probs]
+        f_info = clamp(sum(info_vals) / len(info_vals))
     else:
-        f_schedule = 50
-    
-    
-    # 5. FACTEUR: Consistance des performances
-    # Analyse win_rate vs expected_win_rate (basé sur Elo des adversaires)
-    if len(player_data['match_results']) > 10:
-        actual_wins = sum(player_data['match_results'])
-        expected_wins = sum(player_data['expected_win_probs'])
-        
-        # Performance conforme = confiance haute
-        performance_diff = abs(actual_wins - expected_wins) / len(player_data['match_results'])
-        f_consistency = 100 * (1 - performance_diff)
+        f_info = 0.5  # fallback neutre
+
+    # 5) Fiabilité adversaires (proxy simple = leur volume)
+    if opponents_faced:
+        rels = []
+        for oid in opponents_faced:
+            opp = by_id.get(oid)
+            if not opp:
+                continue
+            rels.append(clamp(float(opp.get("num_matches", 0)) / max(1.0, aim_matches)))
+        f_opponents = sum(rels) / len(rels) if rels else 0.0
     else:
-        f_consistency = 50
-    
-    
-    # AGRÉGATION PONDÉRÉE des facteurs
-    weights = {
-        'matches': 0.25,      # Nombre absolu de matchs
-        'gap': 0.15,          # Écart avec le plus actif
-        'diversity': 0.20,    # Diversité des adversaires
-        'stability': 0.20,    # Stabilité du rating
-        'schedule': 0.10,     # Qualité des adversaires
-        'consistency': 0.10   # Consistance performances
-    }
-    
-    confidence_score = (
-        weights['matches'] * f_matches +
-        weights['gap'] * f_gap +
-        weights['diversity'] * f_diversity +
-        weights['stability'] * f_stability +
-        weights['schedule'] * f_schedule +
-        weights['consistency'] * f_consistency
+        f_opponents = 0.0
+
+    # 6) Pénalité écart de niveau
+    if opponents_faced:
+        gaps = []
+        for oid in opponents_faced:
+            opp = by_id.get(oid)
+            if not opp:
+                continue
+            gaps.append(abs(current_elo - float(opp.get("elo", current_elo))))
+        mean_gap = (sum(gaps) / len(gaps)) if gaps else 0.0
+    else:
+        mean_gap = 0.0
+    f_gap = math.exp(-mean_gap / max(1.0, gap_scale))
+
+    # ----- MATCHS EFFECTIFS -----
+    effective_matches = (
+        num_matches
+        * (0.30 + 0.70 * f_info)
+        * (0.20 + 0.80 * f_diversity)
+        * (0.35 + 0.65 * f_repeat)
+        * (0.35 + 0.65 * f_opponents)
+        * (0.50 + 0.50 * f_gap)
     )
-    
-    # Calcul du RD adaptatif (plus conservateur que Glicko standard)
-    # RD élevé = large intervalle de confiance
-    base_rd = 350  # RD maximal pour nouveaux joueurs
-    min_rd = 50    # RD minimal même pour joueurs expérimentés (ping-pong plus volatile)
-    
-    # RD inversement proportionnel à la confiance
-    rd = base_rd - (base_rd - min_rd) * (confidence_score / 100)
-    
-    # Intervalle de confiance à 95%
-    current_elo = player_data['elo_current']
-    lower = current_elo - 1.96 * rd
-    upper = current_elo + 1.96 * rd
-    
-    return {
-        'predicted_rating': round(current_elo, 1),
-        'lower': round(lower, 1),
-        'upper': round(upper, 1),
-        'rd': round(rd, 1),
-        'confidence': round(confidence_score, 1),
-        'factors': {
-            'matches': round(f_matches, 1),
-            'gap_penalty': round(f_gap, 1),
-            'diversity': round(f_diversity, 1),
-            'stability': round(f_stability, 1),
-            'schedule': round(f_schedule, 1),
-            'consistency': round(f_consistency, 1)
+
+    # ----- RD -----
+    rd = rd_min + (rd_max - rd_min) * math.exp(-effective_matches / max(1e-9, eff_decay))
+
+    # ----- Intervalles (centraux) -----
+    # z pour intervalles centraux 50/75/95%
+    z_map = {
+        "50": 0.67448975,
+        "75": 1.15034938,
+        "95": 1.95996398,
+    }
+
+    intervals = {}
+    for p_str, z in z_map.items():
+        lower = current_elo - z * rd
+        upper = current_elo + z * rd
+        intervals[p_str] = {
+            "p": int(p_str),
+            "z": round(z, 6),
+            "lower": round(lower, 1),
+            "upper": round(upper, 1),
         }
+
+    # compat: lower/upper = 95%
+    lower_95 = intervals["95"]["lower"]
+    upper_95 = intervals["95"]["upper"]
+
+    # Confidence (0..100) : projection de RD
+    confidence_score = 100.0 * (rd_max - rd) / max(1e-9, (rd_max - rd_min))
+    confidence_score = clamp(confidence_score / 100.0) * 100.0
+
+    return {
+        "predicted_rating": round(current_elo, 1),
+        "lower": lower_95,
+        "upper": upper_95,
+        "rd": round(rd, 1),
+        "confidence": round(confidence_score, 1),
+        "intervals": intervals,
+        "factors": {
+            "matches": round(f_matches, 3),
+            "diversity": round(f_diversity, 3),
+            "repeat_penalty": round(f_repeat, 3),
+            "informativeness": round(f_info, 3),
+            "opponents_reliability": round(f_opponents, 3),
+            "gap_penalty": round(f_gap, 3),
+            "effective_matches": round(effective_matches, 2),
+            "mean_gap": round(mean_gap, 1),
+        },
     }
